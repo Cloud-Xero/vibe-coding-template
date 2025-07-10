@@ -1,0 +1,185 @@
+# プロジェクト概要 [記入必須]
+
+**プロジェクト名**: `[記入してください]`
+**目的**: `[何を解決するプロジェクトか記入]`
+**対象ユーザー**: `[誰が使うのか記入]`
+
+## 作るもの [記入必須]
+
+### 必須機能
+- [ ] `[機能名]: [詳細説明]`
+- [ ] `[機能名]: [詳細説明]`
+- [ ] `[機能名]: [詳細説明]`
+
+### 優先度の高い機能
+- [ ] `[機能名]: [詳細説明]`
+- [ ] `[機能名]: [詳細説明]`
+
+### 将来的に追加したい機能
+- [ ] `[機能名]: [詳細説明]`
+- [ ] `[機能名]: [詳細説明]`
+
+## 技術スタック [記入必須]
+
+### フロントエンド
+**フレームワーク**: `[選択してください]`
+- [ ] HTML/CSS/JavaScript
+- [ ] React + TypeScript
+- [ ] Next.js 14 (App Router) [おすすめ]
+- [ ] Astro
+
+**スタイリング**: `[選択してください]`
+- [ ] Tailwind CSS [おすすめ]
+- [ ] CSS Modules
+- [ ] 素の CSS
+
+### バックエンド
+**サーバー**: `[選択してください]`
+- [ ] なし (静的サイト)
+- [ ] Next.js API Routes [おすすめ]
+- [ ] Go (Gin/Echo/Fiber)
+- [ ] Google Apps Script
+- [ ] Serverless Functions
+
+### データベース
+**種類**: `[選択してください]`
+- [ ] なし
+- [ ] SQLite [開発用におすすめ]
+- [ ] PostgreSQL [本格運用におすすめ]
+- [ ] ファイルベース (JSON/Markdown)
+
+### 認証
+- [ ] なし
+- [ ] NextAuth.js [Next.jsにおすすめ]
+- [ ] Clerk [簡単実装]
+- [ ] カスタム実装
+
+## プロジェクト構造
+
+```
+[プロジェクト作成後に更新]
+src/
+├── app/          # Next.js App Router
+├── components/   # 再利用可能コンポーネント
+├── lib/          # ユーティリティ
+└── types/        # TypeScript 型定義
+```
+
+## 開発ルール
+
+### コーディング規約
+- **言語**: TypeScript を使用
+- **関数**: アロー関数を優先
+- **インポート**: ES modules (import/export) を使用
+- **命名**: camelCase でわかりやすい名前
+
+### コンポーネント設計
+- 関数コンポーネント + Hooks を使用
+- プロップスには型定義を必須
+- 再利用可能なコンポーネントは src/components/ に配置
+
+### ファイル構成
+- ページコンポーネント: src/app/
+- 共通コンポーネント: src/components/
+- ユーティリティ: src/lib/
+- 型定義: src/types/
+
+## よく使うコマンド
+
+### 開発
+```bash
+npm run dev          # 開発サーバー起動
+npm run build        # 本番ビルド
+npm run start        # 本番サーバー起動
+```
+
+### コード品質
+```bash
+npx biome check --apply .  # リンティング + フォーマット
+npx tsc --noEmit          # 型チェック
+npm test                  # テスト実行
+```
+
+### Git
+```bash
+git add .
+git commit -m "feat: 機能追加"
+git push
+```
+
+## 禁止事項
+
+- `eval()` や `exec()` などの危険な関数は使用しない
+- パスワードや API キーをコードに直接書かない
+- `rm -rf` などの破壊的コマンドは使用しない
+- main ブランチに直接プッシュしない
+
+## 注意点
+
+### セキュリティ
+- 環境変数 (.env) で機密情報を管理
+- 入力値は必ず検証する
+- HTTPS を使用する
+
+### パフォーマンス
+- 画像は最適化する
+- 不要な依存関係は追加しない
+- バンドルサイズを定期的にチェック
+
+### アクセシビリティ
+- セマンティックな HTML を使用
+- alt テキストを画像に設定
+- キーボードナビゲーションを考慮
+
+## 環境設定
+
+### 必要な環境変数
+```bash
+# .env.example を参考に .env.local を作成
+DATABASE_URL=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
+```
+
+### 推奨ツール
+- **エディタ**: VS Code
+- **ターミナル**: お好みで
+- **ブラウザ**: Chrome (開発者ツール用)
+- **パッケージマネージャー**: pnpm [おすすめ]
+
+## 開発フロー
+
+1. **ブランチ作成**: `git checkout -b feature/機能名`
+2. **実装**: 機能開発 + テスト作成
+3. **品質チェック**: `npx biome check` + `npx tsc --noEmit`
+4. **コミット**: `git commit -m "feat: 機能説明"`
+5. **プッシュ**: `git push origin feature/機能名`
+6. **PR作成**: GitHub で Pull Request
+
+## トラブルシューティング
+
+### よくある問題
+- **ポートが使用中**: `lsof -ti:3000 | xargs kill -9`
+- **node_modules 問題**: `rm -rf node_modules && pnpm install`
+- **型エラー**: `npx tsc --noEmit` で詳細確認
+
+### デバッグ方法
+- `console.log()` で値を確認
+- Chrome DevTools を活用
+- React DevTools を使用
+
+---
+
+## 記入完了後のタスク
+
+プロジェクト要件を記入したら、以下を実行してください：
+
+1. **プロジェクト作成**:
+   ```bash
+   claude /project:start
+   ```
+
+2. **開発開始**:
+   - `/project:start` が自動的に CLAUDE.md を開発版に更新
+   - 案内に従って依存関係をインストール
+   - 開発サーバーを起動して開発開始

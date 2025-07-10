@@ -1,0 +1,757 @@
+{
+	"security": {
+		"prohibited_commands": [
+			"rm -rf",
+			"sudo rm -rf",
+			"del /f /q",
+			"format",
+			"dd if=/dev/zero",
+			":(){ :|:& };:",
+			"chmod 777",
+			"sudo chmod -R 777"
+		],
+		"prohibited_patterns": [
+			"password\\s*=\\s*[\"'][^\"']+[\"']",
+			"api_key\\s*=\\s*[\"'][^\"']+[\"']",
+			"secret\\s*=\\s*[\"'][^\"']+[\"']",
+			"token\\s*=\\s*[\"'][^\"']+[\"']",
+			"private_key\\s*=\\s*[\"'][^\"']+[\"']"
+		],
+		"file_restrictions": {
+			"prohibited_extensions": [
+				".exe",
+				".bat",
+				".cmd",
+				".scr",
+				".pif",
+				".vbs",
+				".jar"
+			],
+			"prohibited_paths": [
+				"/etc/passwd",
+				"/etc/shadow",
+				"C:\\Windows\\System32",
+				"~/.ssh/id_rsa",
+				"~/.aws/credentials"
+			]
+		}
+	},
+	"code_safety": {
+		"require_confirmation_for": [
+			"database_operations",
+			"system_modifications",
+			"network_requests",
+			"file_deletions",
+			"permission_changes"
+		],
+		"prohibited_functions": [
+			"eval()",
+			"exec()",
+			"system()",
+			"shell_exec()",
+			"passthru()",
+			"os.system()",
+			"subprocess.call()"
+		]
+	},
+	"development_guidelines": {
+		"always_validate_input": true,
+		"use_parameterized_queries": true,
+		"implement_rate_limiting": true,
+		"log_security_events": true,
+		"require_https": true,
+		"sanitize_user_input": true
+	},
+	"environment_protection": {
+		"prevent_production_access": true,
+		"require_environment_variables": ["DATABASE_URL", "API_KEYS", "SECRETS"],
+		"prohibited_hardcoded_values": [
+			"localhost:3306",
+			"127.0.0.1",
+			"admin:password",
+			"root:root"
+		]
+	},
+	"project_structure": {
+		"required_files": [
+			".env.example",
+			".gitignore",
+			"README.md",
+			"requirements.txt"
+		],
+		"prohibited_in_git": [
+			".env",
+			"*.log",
+			"*.key",
+			"*.pem",
+			"config/database.yml",
+			"secrets.json"
+		]
+	},
+	"response_guidelines": {
+		"always_explain_security_implications": true,
+		"suggest_secure_alternatives": true,
+		"warn_about_potential_risks": true,
+		"provide_best_practices": true
+	},
+	"hooks": {
+		"pre_commit": {
+			"enabled": true,
+			"commands": [
+				{
+					"name": "security_scan",
+					"command": "grep -r -n -E '(password|api_key|secret|token)\\s*=\\s*[\"\\'][^\"\\'']+[\"\\']' .",
+					"description": "機密情報のハードコーディングをチェック",
+					"fail_on_error": true,
+					"timeout": 30,
+					"conditions": {
+						"always_run": true
+					}
+				},
+				{
+					"name": "dangerous_commands_check",
+					"command": "grep -r -n -E '(rm\\s+-rf|sudo\\s+rm|del\\s+/f|format\\s+[A-Z]:)' .",
+					"description": "危険なコマンドの使用をチェック",
+					"fail_on_error": true,
+					"timeout": 30,
+					"conditions": {
+						"always_run": true
+					}
+				},
+				{
+					"name": "biome_linting_and_formatting",
+					"command": "npx biome check --apply .",
+					"description": "Biome による JavaScript/TypeScript の静的解析とフォーマット",
+					"fail_on_error": false,
+					"timeout": 120,
+					"conditions": {
+						"file_exists": ["biome.json", "biome.jsonc"],
+						"file_patterns": [
+							"*.js",
+							"*.ts",
+							"*.jsx",
+							"*.tsx",
+							"*.mjs",
+							"*.cjs"
+						]
+					}
+				},
+				{
+					"name": "astro_check",
+					"command": "npx astro check",
+					"description": "Astro プロジェクトの型チェックと検証",
+					"fail_on_error": false,
+					"timeout": 180,
+					"conditions": {
+						"file_exists": [
+							"astro.config.mjs",
+							"astro.config.js",
+							"astro.config.ts"
+						],
+						"file_patterns": ["*.astro"]
+					}
+				},
+				{
+					"name": "typescript_check",
+					"command": "npx tsc --noEmit",
+					"description": "TypeScript の型チェック",
+					"fail_on_error": false,
+					"timeout": 180,
+					"conditions": {
+						"file_exists": ["tsconfig.json"],
+						"file_patterns": ["*.ts", "*.tsx"]
+					}
+				},
+				{
+					"name": "html_validation",
+					"command": "npx html-validate *.html **/*.html",
+					"description": "HTML ファイルの構文検証",
+					"fail_on_error": false,
+					"timeout": 60,
+					"conditions": {
+						"file_patterns": ["*.html"],
+						"command_available": ["npx"]
+					}
+				},
+				{
+					"name": "css_validation",
+					"command": "npx stylelint '**/*.css' --fix",
+					"description": "CSS ファイルの検証とフォーマット",
+					"fail_on_error": false,
+					"timeout": 90,
+					"conditions": {
+						"file_patterns": ["*.css"],
+						"file_exists": [
+							".stylelintrc.json",
+							".stylelintrc.js",
+							"stylelint.config.js"
+						]
+					}
+				},
+				{
+					"name": "go_formatting",
+					"command": "go fmt ./...",
+					"description": "Go コードのフォーマット",
+					"fail_on_error": false,
+					"timeout": 60,
+					"conditions": {
+						"file_exists": ["go.mod"],
+						"file_patterns": ["*.go"],
+						"command_available": ["go"]
+					}
+				},
+				{
+					"name": "go_vet",
+					"command": "go vet ./...",
+					"description": "Go コードの静的解析",
+					"fail_on_error": false,
+					"timeout": 120,
+					"conditions": {
+						"file_exists": ["go.mod"],
+						"file_patterns": ["*.go"],
+						"command_available": ["go"]
+					}
+				}
+			]
+		},
+		"pre_push": {
+			"enabled": true,
+			"commands": [
+				{
+					"name": "npm_security_audit",
+					"command": "npm audit --audit-level=high",
+					"description": "Node.js 依存関係の脆弱性スキャン",
+					"fail_on_error": true,
+					"timeout": 180,
+					"conditions": {
+						"file_exists": ["package.json", "package-lock.json"],
+						"command_available": ["npm"]
+					}
+				},
+				{
+					"name": "pnpm_security_audit",
+					"command": "pnpm audit --audit-level=high",
+					"description": "pnpm 依存関係の脆弱性スキャン",
+					"fail_on_error": true,
+					"timeout": 180,
+					"conditions": {
+						"file_exists": ["package.json", "pnpm-lock.yaml"],
+						"command_available": ["pnpm"]
+					}
+				},
+				{
+					"name": "yarn_security_audit",
+					"command": "yarn audit --level=high",
+					"description": "Yarn 依存関係の脆弱性スキャン",
+					"fail_on_error": true,
+					"timeout": 180,
+					"conditions": {
+						"file_exists": ["package.json", "yarn.lock"],
+						"command_available": ["yarn"]
+					}
+				},
+				{
+					"name": "go_security_scan",
+					"command": "gosec ./...",
+					"description": "Go セキュリティスキャン",
+					"fail_on_error": true,
+					"timeout": 240,
+					"conditions": {
+						"file_exists": ["go.mod"],
+						"file_patterns": ["*.go"],
+						"command_available": ["gosec"]
+					}
+				},
+				{
+					"name": "go_vulnerability_check",
+					"command": "govulncheck ./...",
+					"description": "Go 脆弱性チェック",
+					"fail_on_error": true,
+					"timeout": 180,
+					"conditions": {
+						"file_exists": ["go.mod"],
+						"file_patterns": ["*.go"],
+						"command_available": ["govulncheck"]
+					}
+				},
+				{
+					"name": "nodejs_tests",
+					"command": "npm test",
+					"description": "Node.js テストスイートの実行",
+					"fail_on_error": true,
+					"timeout": 600,
+					"conditions": {
+						"file_exists": ["package.json"],
+						"script_exists": ["test"],
+						"command_available": ["npm"]
+					}
+				},
+				{
+					"name": "vitest_tests",
+					"command": "npx vitest run",
+					"description": "Vitest テストスイートの実行",
+					"fail_on_error": true,
+					"timeout": 600,
+					"conditions": {
+						"file_exists": [
+							"vitest.config.js",
+							"vitest.config.ts",
+							"vite.config.js",
+							"vite.config.ts"
+						],
+						"command_available": ["npx"]
+					}
+				},
+				{
+					"name": "jest_tests",
+					"command": "npx jest",
+					"description": "Jest テストスイートの実行",
+					"fail_on_error": true,
+					"timeout": 600,
+					"conditions": {
+						"file_exists": [
+							"jest.config.js",
+							"jest.config.ts",
+							"jest.config.json"
+						],
+						"command_available": ["npx"]
+					}
+				},
+				{
+					"name": "go_tests",
+					"command": "go test -v ./...",
+					"description": "Go テストスイートの実行",
+					"fail_on_error": true,
+					"timeout": 600,
+					"conditions": {
+						"file_exists": ["go.mod"],
+						"file_patterns": ["*_test.go"],
+						"command_available": ["go"]
+					}
+				},
+				{
+					"name": "astro_build_test",
+					"command": "npx astro build",
+					"description": "Astro ビルドテスト",
+					"fail_on_error": true,
+					"timeout": 300,
+					"conditions": {
+						"file_exists": [
+							"astro.config.mjs",
+							"astro.config.js",
+							"astro.config.ts"
+						],
+						"file_patterns": ["*.astro"]
+					}
+				},
+				{
+					"name": "google_apps_script_validation",
+					"command": "npx @google/clasp push --dry-run",
+					"description": "Google Apps Script プッシュ検証",
+					"fail_on_error": false,
+					"timeout": 120,
+					"conditions": {
+						"file_exists": [".clasp.json", "appsscript.json"],
+						"command_available": ["npx"]
+					}
+				}
+			]
+		},
+		"post_checkout": {
+			"enabled": true,
+			"commands": [
+				{
+					"name": "nodejs_dependency_installation_npm",
+					"command": "npm ci || npm install",
+					"description": "npm による依存関係の自動インストール",
+					"fail_on_error": false,
+					"timeout": 300,
+					"conditions": {
+						"file_exists": ["package.json", "package-lock.json"],
+						"command_available": ["npm"]
+					}
+				},
+				{
+					"name": "nodejs_dependency_installation_pnpm",
+					"command": "pnpm install --frozen-lockfile || pnpm install",
+					"description": "pnpm による依存関係の自動インストール",
+					"fail_on_error": false,
+					"timeout": 300,
+					"conditions": {
+						"file_exists": ["package.json", "pnpm-lock.yaml"],
+						"command_available": ["pnpm"]
+					}
+				},
+				{
+					"name": "nodejs_dependency_installation_yarn",
+					"command": "yarn install --frozen-lockfile || yarn install",
+					"description": "Yarn による依存関係の自動インストール",
+					"fail_on_error": false,
+					"timeout": 300,
+					"conditions": {
+						"file_exists": ["package.json", "yarn.lock"],
+						"command_available": ["yarn"]
+					}
+				},
+				{
+					"name": "go_dependency_download",
+					"command": "go mod download",
+					"description": "Go モジュールのダウンロード",
+					"fail_on_error": false,
+					"timeout": 300,
+					"conditions": {
+						"file_exists": ["go.mod"],
+						"command_available": ["go"]
+					}
+				},
+				{
+					"name": "go_dependency_tidy",
+					"command": "go mod tidy",
+					"description": "Go モジュールの整理",
+					"fail_on_error": false,
+					"timeout": 120,
+					"conditions": {
+						"file_exists": ["go.mod"],
+						"command_available": ["go"]
+					}
+				},
+				{
+					"name": "environment_setup",
+					"command": "cp .env.example .env.local",
+					"description": "環境設定ファイルの準備",
+					"fail_on_error": false,
+					"timeout": 10,
+					"conditions": {
+						"file_exists": [".env.example"],
+						"file_not_exists": [".env.local", ".env"]
+					}
+				},
+				{
+					"name": "biome_setup",
+					"command": "npx biome init",
+					"description": "Biome 設定ファイルの初期化",
+					"fail_on_error": false,
+					"timeout": 30,
+					"conditions": {
+						"file_exists": ["package.json"],
+						"file_not_exists": ["biome.json", "biome.jsonc"],
+						"command_available": ["npx"]
+					}
+				},
+				{
+					"name": "google_apps_script_setup",
+					"command": "npx @google/clasp login --check",
+					"description": "Google Apps Script 認証状態の確認",
+					"fail_on_error": false,
+					"timeout": 60,
+					"conditions": {
+						"file_exists": [".clasp.json"],
+						"command_available": ["npx"]
+					}
+				}
+			]
+		},
+		"pre_deploy": {
+			"enabled": true,
+			"commands": [
+				{
+					"name": "production_build_test",
+					"command": "npm run build",
+					"description": "本番ビルドテスト",
+					"fail_on_error": true,
+					"timeout": 600,
+					"conditions": {
+						"file_exists": ["package.json"],
+						"script_exists": ["build"]
+					}
+				},
+				{
+					"name": "astro_production_build",
+					"command": "npx astro build",
+					"description": "Astro 本番ビルド",
+					"fail_on_error": true,
+					"timeout": 600,
+					"conditions": {
+						"file_exists": [
+							"astro.config.mjs",
+							"astro.config.js",
+							"astro.config.ts"
+						]
+					}
+				},
+				{
+					"name": "go_production_build",
+					"command": "go build -o ./bin/app .",
+					"description": "Go 本番ビルド",
+					"fail_on_error": true,
+					"timeout": 300,
+					"conditions": {
+						"file_exists": ["go.mod", "main.go"],
+						"command_available": ["go"]
+					}
+				},
+				{
+					"name": "environment_variables_validation",
+					"command": "node -e \"require('dotenv').config(); console.log('Environment variables loaded successfully')\"",
+					"description": "環境変数の検証",
+					"fail_on_error": false,
+					"timeout": 30,
+					"conditions": {
+						"file_exists": [".env", ".env.local", ".env.production"]
+					}
+				},
+				{
+					"name": "secrets_scan",
+					"command": "gitleaks detect --source . || truffleHog . || true",
+					"description": "機密情報の漏洩スキャン",
+					"fail_on_error": true,
+					"timeout": 120,
+					"conditions": {
+						"always_run": true
+					}
+				},
+				{
+					"name": "google_apps_script_deploy_check",
+					"command": "npx @google/clasp push --dry-run",
+					"description": "Google Apps Script デプロイ前チェック",
+					"fail_on_error": true,
+					"timeout": 120,
+					"conditions": {
+						"file_exists": [".clasp.json", "appsscript.json"]
+					}
+				}
+			]
+		},
+		"post_deploy": {
+			"enabled": true,
+			"commands": [
+				{
+					"name": "health_check_http",
+					"command": "curl -f http://localhost:3000/health || curl -f http://localhost:8080/health || true",
+					"description": "HTTP ヘルスチェック",
+					"fail_on_error": false,
+					"timeout": 60,
+					"conditions": {
+						"environment_variable": ["PORT", "HTTP_PORT"]
+					}
+				},
+				{
+					"name": "astro_preview_test",
+					"command": "npx astro preview --host 0.0.0.0 --port 4321 &",
+					"description": "Astro プレビューサーバーテスト",
+					"fail_on_error": false,
+					"timeout": 120,
+					"conditions": {
+						"file_exists": [
+							"astro.config.mjs",
+							"astro.config.js",
+							"astro.config.ts"
+						]
+					}
+				},
+				{
+					"name": "lighthouse_performance_audit",
+					"command": "npx lighthouse http://localhost:3000 --chrome-flags='--headless' --output=json --output-path=./lighthouse-report.json",
+					"description": "Lighthouse パフォーマンス監査",
+					"fail_on_error": false,
+					"timeout": 300,
+					"conditions": {
+						"command_available": ["npx"],
+						"environment_variable": ["CI"]
+					}
+				},
+				{
+					"name": "google_apps_script_deployment_verification",
+					"command": "npx @google/clasp deployments",
+					"description": "Google Apps Script デプロイメント確認",
+					"fail_on_error": false,
+					"timeout": 60,
+					"conditions": {
+						"file_exists": [".clasp.json"]
+					}
+				}
+			]
+		}
+	},
+	"condition_system": {
+		"evaluation_order": [
+			"file_exists",
+			"file_not_exists",
+			"directory_exists",
+			"command_available",
+			"environment_variable",
+			"file_patterns",
+			"script_exists",
+			"custom_condition"
+		],
+		"logical_operators": {
+			"AND": "all conditions must be true",
+			"OR": "at least one condition must be true",
+			"NOT": "condition must be false"
+		},
+		"condition_types": {
+			"file_exists": {
+				"description": "指定されたファイルが存在する場合に実行",
+				"example": ["package.json", "go.mod", "astro.config.mjs", "biome.json"]
+			},
+			"file_not_exists": {
+				"description": "指定されたファイルが存在しない場合に実行",
+				"example": [".env", ".env.local", "biome.json"]
+			},
+			"directory_exists": {
+				"description": "指定されたディレクトリが存在する場合に実行",
+				"example": ["tests", "src", "node_modules", "dist"]
+			},
+			"command_available": {
+				"description": "指定されたコマンドが使用可能な場合に実行",
+				"example": ["npm", "pnpm", "yarn", "go", "npx"]
+			},
+			"environment_variable": {
+				"description": "指定された環境変数が設定されている場合に実行",
+				"example": ["NODE_ENV", "PORT", "CI", "GOOGLE_APPLICATION_CREDENTIALS"]
+			},
+			"file_patterns": {
+				"description": "指定されたパターンにマッチするファイルが存在する場合に実行",
+				"example": [
+					"*.js",
+					"*.ts",
+					"*.tsx",
+					"*.astro",
+					"*.go",
+					"*.html",
+					"*.css"
+				]
+			},
+			"script_exists": {
+				"description": "package.json内に指定されたスクリプトが存在する場合に実行",
+				"example": ["test", "build", "dev", "preview", "check"]
+			},
+			"always_run": {
+				"description": "常に実行（条件なし）",
+				"example": true
+			}
+		}
+	},
+	"smart_detection": {
+		"project_type_detection": {
+			"nodejs_npm": {
+				"indicators": ["package.json", "package-lock.json"],
+				"enabled_hooks": [
+					"npm_security_audit",
+					"nodejs_tests",
+					"biome_linting_and_formatting"
+				]
+			},
+			"nodejs_pnpm": {
+				"indicators": ["package.json", "pnpm-lock.yaml"],
+				"enabled_hooks": [
+					"pnpm_security_audit",
+					"nodejs_tests",
+					"biome_linting_and_formatting"
+				]
+			},
+			"nodejs_yarn": {
+				"indicators": ["package.json", "yarn.lock"],
+				"enabled_hooks": [
+					"yarn_security_audit",
+					"nodejs_tests",
+					"biome_linting_and_formatting"
+				]
+			},
+			"typescript": {
+				"indicators": ["tsconfig.json", "*.ts", "*.tsx"],
+				"enabled_hooks": ["typescript_check", "biome_linting_and_formatting"]
+			},
+			"react": {
+				"indicators": ["*.jsx", "*.tsx", "react"],
+				"enabled_hooks": ["biome_linting_and_formatting", "typescript_check"]
+			},
+			"astro": {
+				"indicators": [
+					"astro.config.mjs",
+					"astro.config.js",
+					"astro.config.ts",
+					"*.astro"
+				],
+				"enabled_hooks": [
+					"astro_check",
+					"astro_build_test",
+					"astro_production_build"
+				]
+			},
+			"go": {
+				"indicators": ["go.mod", "go.sum", "*.go"],
+				"enabled_hooks": [
+					"go_security_scan",
+					"go_tests",
+					"go_formatting",
+					"go_vet"
+				]
+			},
+			"google_apps_script": {
+				"indicators": [".clasp.json", "appsscript.json", "*.gs"],
+				"enabled_hooks": [
+					"google_apps_script_validation",
+					"google_apps_script_deploy_check"
+				]
+			},
+			"html_css": {
+				"indicators": ["*.html", "*.css"],
+				"enabled_hooks": ["html_validation", "css_validation"]
+			}
+		},
+		"fallback_behavior": {
+			"unknown_project": {
+				"run_generic_checks": true,
+				"enabled_hooks": ["security_scan", "dangerous_commands_check"],
+				"skip_language_specific": true
+			}
+		}
+	},
+	"execution_strategy": {
+		"condition_evaluation": {
+			"cache_results": true,
+			"cache_duration": "1h",
+			"parallel_evaluation": true
+		},
+		"skip_behavior": {
+			"log_skipped_commands": true,
+			"show_skip_reason": true,
+			"count_as_success": true
+		},
+		"error_handling": {
+			"condition_check_failure": "skip_command",
+			"command_not_found": "log_warning",
+			"timeout_on_condition_check": 10
+		}
+	},
+	"tool_specific_configuration": {
+		"biome": {
+			"config_files": ["biome.json", "biome.jsonc"],
+			"commands": {
+				"check": "npx biome check --apply .",
+				"format": "npx biome format --write .",
+				"lint": "npx biome lint --apply ."
+			}
+		},
+		"package_managers": {
+			"priority_order": ["pnpm", "yarn", "npm"],
+			"detection_files": {
+				"pnpm": "pnpm-lock.yaml",
+				"yarn": "yarn.lock",
+				"npm": "package-lock.json"
+			}
+		},
+		"go_tools": {
+			"required": ["go", "gofmt", "go vet"],
+			"optional": ["gosec", "govulncheck", "staticcheck"]
+		},
+		"testing_frameworks": {
+			"priority_order": ["vitest", "jest", "node:test"],
+			"detection": {
+				"vitest": ["vitest.config.js", "vitest.config.ts"],
+				"jest": ["jest.config.js", "jest.config.ts", "jest.config.json"]
+			}
+		}
+	}
+}
