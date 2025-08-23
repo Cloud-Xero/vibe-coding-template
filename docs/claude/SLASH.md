@@ -20,7 +20,7 @@
 | `/mcp`                    | MCPサーバー接続とOAuth認証を管理                                           |
 | `/memory`                 | CLAUDE.mdメモリファイルを編集                                            |
 | `/model`                  | AIモデルを選択または変更                                                  |
-| `/permissions`            | [権限](/ja/docs/claude-code/iam#configuring-permissions)を表示または更新 |
+| `/permissions`            | 権限設定を表示または更新                                               |
 | `/pr_comments`            | プルリクエストコメントを表示                                                 |
 | `/review`                 | コードレビューをリクエスト                                                  |
 | `/status`                 | アカウントとシステムのステータスを表示                                            |
@@ -139,9 +139,18 @@ description: gitコミットを作成
 @src/old-version.jsと@src/new-version.jsを比較してください
 ```
 
-#### 思考モード
+#### 拡張思考モード
 
-スラッシュコマンドは[拡張思考キーワード](/ja/docs/claude-code/common-workflows#use-extended-thinking)を含めることで拡張思考をトリガーできます。
+スラッシュコマンドは拡張思考キーワードを含めることで拡張思考をトリガーできます。拡張思考を有効にすると、Claudeがより詳細な理由付けと考察を行います。
+
+```markdown
+# 拡張思考を含むコマンド例
+複雑なアーキテクチャを分析し、改善提案を理由とともに提示してください。
+
+＼thinking＾
+コードベースを理解するために詳細な分析を必要とします。
+＼/thinking＾
+```
 
 ### ファイル形式
 
@@ -197,8 +206,20 @@ MCPプロンプトはサーバーによって定義された引数を受け取�
 
 ### MCP接続の管理
 
-`/mcp`コマンドを使用して：
+`/mcp`コマンドでMCP（Model Context Protocol）サーバーを管理できます：
 
+```bash
+# MCPサーバーの状態を表示
+/mcp
+
+# MCPサーバーの認証
+/mcp auth server-name
+
+# 認証トークンをクリア
+/mcp clear-auth server-name
+```
+
+主な機能：
 * 設定されたすべてのMCPサーバーを表示
 * 接続ステータスをチェック
 * OAuth対応サーバーで認証
